@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 export interface AsmaulHusna {
     number: number;
     name: string;
@@ -26,27 +29,20 @@ const API_URL = `${BASE_URL}/api/v1/asma-ul-husna`;
 
 export async function getAsmaulHusna(): Promise<{ data: AsmaulHusnaResponse | null, error: string | null }> {
     try {
-        const apiKey = process.env.NEXT_PUBLIC_ISLAMIC_API_KEY;
-        if (!apiKey) {
-            console.error("Missing NEXT_PUBLIC_ISLAMIC_API_KEY");
-            return { data: null, error: "Missing NEXT_PUBLIC_ISLAMIC_API_KEY environment variable" };
+        // We now load from local static JSON to avoid Cloudflare 403 blocks on Vercel
+        const filePath = path.join(process.cwd(), 'public', 'data', 'asmaul-husna.json');
+
+        if (!fs.existsSync(filePath)) {
+            return { data: null, error: "Local data file not found at " + filePath };
         }
 
-        const res = await fetch(`${API_URL}/?language=id&api_key=${apiKey}`, {
-            next: { revalidate: 86400 }, // Cache for 24 hours
-        });
+        const fileContents = fs.readFileSync(filePath, 'utf8');
+        const data: AsmaulHusnaResponse = JSON.parse(fileContents);
 
-        if (!res.ok) {
-            const errText = await res.text().catch(() => "No error text provided");
-            console.error("Failed to fetch Asmaul Husna:", res.statusText, errText);
-            return { data: null, error: `API Error: ${res.status} ${res.statusText} - ${errText.substring(0, 150)}` };
-        }
-
-        const data: AsmaulHusnaResponse = await res.json();
         return { data, error: null };
     } catch (error: any) {
-        console.error("Error fetching Asmaul Husna:", error);
-        return { data: null, error: `Fetch Exception: ${error?.message || String(error)}` };
+        console.error("Error loading Asmaul Husna locally:", error);
+        return { data: null, error: `JSON Parse/Read Exception: ${error?.message || String(error)}` };
     }
 }
 
