@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+import asmaulHusnaData from "../public/data/asmaul-husna.json";
 
 export interface AsmaulHusna {
     number: number;
@@ -29,15 +28,13 @@ const API_URL = `${BASE_URL}/api/v1/asma-ul-husna`;
 
 export async function getAsmaulHusna(): Promise<{ data: AsmaulHusnaResponse | null, error: string | null }> {
     try {
-        // We now load from local static JSON to avoid Cloudflare 403 blocks on Vercel
-        const filePath = path.join(process.cwd(), 'public', 'data', 'asmaul-husna.json');
+        // Load data directly from JSON import instead of using 'fs'
+        // This prevents the "Module not found: Can't resolve 'fs'" error in Client Components (e.g. AsmaulHusnaCard)
+        const data = asmaulHusnaData as AsmaulHusnaResponse;
 
-        if (!fs.existsSync(filePath)) {
-            return { data: null, error: "Local data file not found at " + filePath };
+        if (!data || !data.data || !data.data.names) {
+            return { data: null, error: "Local data file format is invalid" };
         }
-
-        const fileContents = fs.readFileSync(filePath, 'utf8');
-        const data: AsmaulHusnaResponse = JSON.parse(fileContents);
 
         return { data, error: null };
     } catch (error: any) {
