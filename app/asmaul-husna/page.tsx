@@ -8,13 +8,21 @@ export const metadata: Metadata = {
 };
 
 export default async function AsmaulHusnaPage() {
-    const response = await getAsmaulHusna();
+    const { data: response, error } = await getAsmaulHusna();
 
-    if (!response || !response.data) {
+    if (error || !response || !response.data) {
         return (
             <div className="container mx-auto px-4 py-16 text-center">
                 <h1 className="text-2xl font-bold text-red-600 mb-4">Gagal memuat data Asmaul Husna</h1>
-                <p className="text-muted-foreground">Silakan periksa koneksi internet Anda atau coba lagi nanti.</p>
+                <p className="text-muted-foreground mb-6">Silakan periksa koneksi internet Anda atau coba lagi nanti.</p>
+
+                {/* Debugging block untuk Vercel */}
+                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl p-4 max-w-2xl mx-auto text-left overflow-x-auto">
+                    <p className="text-sm font-semibold text-red-800 dark:text-red-400 mb-2">Pesan Error Detail:</p>
+                    <code className="text-xs text-red-600 dark:text-red-300">
+                        {error || "Data dari API kosong atau struktur tidak sesuai."}
+                    </code>
+                </div>
             </div>
         );
     }
