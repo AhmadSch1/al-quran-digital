@@ -1,26 +1,47 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, User, Menu, X } from "lucide-react";
+import { BookOpen, User, Menu, X, ChevronDown, Calculator } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+const toolsItems = [
+    { name: "Kalkulator Zakat", href: "/tools/zakat", icon: Calculator },
+];
+
 export function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isToolsOpen, setIsToolsOpen] = useState(false);
+    const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
     const pathname = usePathname();
+    const toolsRef = useRef<HTMLDivElement>(null);
 
     const navLinks = [
         { name: "Al-Quran", href: "/" },
         { name: "Doa & Dzikir", href: "/doa" },
+        { name: "Asmaul Husna", href: "/asmaul-husna" },
     ];
+
+    const isToolsActive = pathname.startsWith("/tools");
+
+    // Close desktop dropdown on outside click
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) {
+                setIsToolsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClick);
+        return () => document.removeEventListener("mousedown", handleClick);
+    }, []);
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-white/80 dark:bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-white/60">
             <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group shrink-0" onClick={() => { setIsMobileMenuOpen(false); setIsMobileToolsOpen(false); }}>
                     <div className="flex h-7 w-8 sm:h-8 sm:w-10 items-center justify-center rounded-full bg-linear-to-r from-emerald-400 to-teal-500 text-white shadow-sm transition-transform group-hover:scale-105 shrink-0">
                         <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </div>
@@ -45,6 +66,44 @@ export function Navbar() {
                                 {link.name}
                             </Link>
                         ))}
+
+                        {/* Desktop Tools Dropdown */}
+                        <div ref={toolsRef} className="relative">
+                            <button
+                                onClick={() => setIsToolsOpen(!isToolsOpen)}
+                                className={cn(
+                                    "flex items-center gap-1 text-sm font-medium transition-colors hover:text-emerald-600 dark:hover:text-emerald-400",
+                                    isToolsActive ? "text-emerald-600 dark:text-emerald-400" : "text-slate-600 dark:text-slate-300"
+                                )}
+                            >
+                                Tools
+                                <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", isToolsOpen && "rotate-180")} />
+                            </button>
+
+                            {isToolsOpen && (
+                                <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-none py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    {toolsItems.map((item) => {
+                                        const Icon = item.icon;
+                                        return (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                onClick={() => setIsToolsOpen(false)}
+                                                className={cn(
+                                                    "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                                                    pathname === item.href
+                                                        ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20"
+                                                        : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                                )}
+                                            >
+                                                <Icon className="h-4 w-4" />
+                                                {item.name}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </nav>
 
                     <ThemeToggle />
@@ -56,7 +115,7 @@ export function Navbar() {
                     {/* Mobile Menu Toggle */}
                     <button
                         className="md:hidden flex h-9 w-9 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        onClick={() => { setIsMobileMenuOpen(!isMobileMenuOpen); setIsMobileToolsOpen(false); }}
                     >
                         {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </button>
@@ -65,7 +124,7 @@ export function Navbar() {
 
             {/* Mobile Navigation Menu */}
             {isMobileMenuOpen && (
-                <div className="md:hidden border-t border-border/50 bg-white dark:bg-slate-950 px-4 py-4 space-y-3 shadow-lg absolute w-full left-0">
+                <div className="md:hidden border-t border-border/50 bg-white dark:bg-slate-950 px-4 py-4 space-y-1 shadow-lg absolute w-full left-0">
                     {navLinks.map((link) => (
                         <Link
                             key={link.href}
@@ -81,8 +140,47 @@ export function Navbar() {
                             {link.name}
                         </Link>
                     ))}
+
+                    {/* Mobile Tools Accordion */}
+                    <button
+                        onClick={() => setIsMobileToolsOpen(!isMobileToolsOpen)}
+                        className={cn(
+                            "flex items-center justify-between w-full px-4 py-3 rounded-xl text-base font-medium transition-colors",
+                            isToolsActive
+                                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                : "text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900/50"
+                        )}
+                    >
+                        Tools
+                        <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isMobileToolsOpen && "rotate-180")} />
+                    </button>
+
+                    {isMobileToolsOpen && (
+                        <div className="ml-4 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                            {toolsItems.map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        onClick={() => { setIsMobileMenuOpen(false); setIsMobileToolsOpen(false); }}
+                                        className={cn(
+                                            "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                                            pathname === item.href
+                                                ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20"
+                                                : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                        )}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        {item.name}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             )}
         </header>
     );
 }
+

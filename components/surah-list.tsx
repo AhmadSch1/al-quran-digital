@@ -161,7 +161,7 @@ export function SurahList({ surahs }: SurahListProps) {
 
                             {/* Quick Links */}
                             <div className="flex flex-wrap justify-center gap-2.5 mb-10 w-full max-w-xl">
-                                {['Ayat Kursi', 'Yasin', 'Al-Kahfi', 'Ar-Rahman', 'Al-Waqiah', 'Al-Mulk'].map((surah) => (
+                                {['Yasin', 'Al-Kahf', 'Ar-Rahman', 'Al-Mulk'].map((surah) => (
                                     <button
                                         key={surah}
                                         onClick={() => setSearchQuery(surah)}
